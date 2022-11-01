@@ -1,0 +1,33 @@
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: diawh
+
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: diawh
+rules:
+  - verbs:
+      - get
+    apiGroups:
+      - ''
+    resources:
+      - secrets
+      - serviceaccounts
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: diawh
+subjects:
+  - kind: ServiceAccount
+    name: diawh
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: diawh

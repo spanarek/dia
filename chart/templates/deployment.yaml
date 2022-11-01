@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dia-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "diawh"
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "diawh"
+    spec:
+      containers:
+      - image: {{ .Values.image }}
+        imagePullPolicy: IfNotPresent
+        name: dia-webhook
+        env:
+          - name: DIAWH_PORT
+            value: '8080'
+          - name: DIAWH_CA_PATH
+            value: /etc/pki/CA/ca.crt
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - mountPath: /etc/pki/CA/ca.crt
+          subPath: ca.crt
+          name: cert-v
+      dnsPolicy: ClusterFirst
+      {{ if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{ .Values.imagePullSecrets | toYaml }}
+      {{- end }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 1
+      serviceAccount: diawh
+      volumes:
+      - secret:
+          secretName: dia-ca
+        name: cert-v
