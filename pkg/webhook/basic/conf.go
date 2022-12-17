@@ -16,11 +16,14 @@ func getEnv(key, defaultValue string) string {
 
 func GetAppConf() map[string]string {
   configs := map[string]string{
-    "protocol": getEnv("DIAWH_PROTOCOL", "http"),
+    "protocol": getEnv("DIAWH_PROTOCOL", "https"),
     "port": getEnv("DIAWH_PORT", "8080"),
     "cors": getEnv("DIAWH_CORS", "disabled"),
     "registry_skip_verify": getEnv("DIAWH_REGISTRY_SKIP_VERIFY", "true"),
-    "ca_path": getEnv("DIAWH_CA_PATH", "./ca.pem"),
+    "attestor_ca_path": getEnv("DIAWH_ATTESTOR_CA_CERT", "/etc/pki/tls/certs/ca.pem"),
+    "tls_cert": getEnv("DIAWH_TLS_CERT", "/etc/pki/tls/certs/diawh.crt"),
+    "tls_key": getEnv("DIAWH_TLS_KEY", "/etc/pki/tls/private/diawh.key"),
+    "digest_slice": getEnv("DIGEST_SLICE", "0-45"),
   }
   return configs
 }

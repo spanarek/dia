@@ -1,0 +1,53 @@
+{{- if .Values.webhookTLS.useCertManager }}
+{{ $issuerName := .Values.issuer }}
+{{- if .Values.webhookTLS.generateSelfSigned }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: dia-selfsigned
+spec:
+  selfSigned: {}
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dia-selfsigned-ca
+spec:
+  secretName: dia-selfsigned-ca
+  duration: 43800h # 5y
+  issuerRef:
+    name: dia-selfsigned
+  commonName: "diawh.ca"
+  isCA: true
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: dia-issuer
+spec:
+  ca:
+    secretName: dia-selfsigned-ca
+{{ $issuerName = "dia-issuer" }}
+{{- end }}
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: diawh.{{ .Release.Namespace }}
+spec:
+  secretName: dia-tls-cert
+  duration: 8760h # 1y
+  issuerRef:
+    name: {{ $issuerName }}
+  dnsNames:
+  - diawh
+  - diawh.{{ .Release.Namespace }}
+  - diawh.{{ .Release.Namespace }}.svc
+
+{{- end }}

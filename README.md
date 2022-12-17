@@ -5,7 +5,7 @@ Just sign and verify your docker images with x509 certificates, keyless, really.
 1. Build and push your image
 2. Issue an x509 certificate: part of commonName must contain image digest(so-called digestslice)
 3. Sign(push certificate) with dia-sign.sh or with your CI manually
-4. Validate digestslice with gatekeeper and webhook
+4. Validate digestslice with kubernetes validation webhook
 
 ## Digestslice
 Digestslice - a part of digest sha256. Digestslice used due to x509 commonName length limitation(64 characters).
@@ -34,34 +34,23 @@ WIP...
 A webhook recieve your deployments and another yaml, and check digest and certificate issuer for image.
 We don't check expiration dates, it's not really for images and some artifacts...
 
-Verify request example:
-
-```bash
-curl -k -X POST --data '{ "image": "registry.local/test-app:v1",
-                          "namespace": "dia-demo",
-                          "imagePullSecrets": ["test-app-registry"],
-                          "digestslice": "0-40" }' "http://diawh.dia.svc:8080/verify"
-```
 Responses:
-200
+
+image not signed:
 ```json
-{"Success": "approved"}
+{"GET https://registry.local/test-app/manifests/dia-0addcc1de26ee0f660d21b01c1afdff9f59efb989331fed17334cf8a6dcd8d6b: NOT_FOUND: artifact test-app:dia-0addcc1de26ee0f660d21b01c1afdff9f59efb989331fed17334cf8a6dcd8d6b not found"}
 ```
-500, image not signed:
+certificate CN invalid
 ```json
-{"Error": "GET https://registry.local/test-app/manifests/dia-0addcc1de26ee0f660d21b01c1afdff9f59efb989331fed17334cf8a6dcd8d6b: NOT_FOUND: artifact test-app:dia-0addcc1de26ee0f660d21b01c1afdff9f59efb989331fed17334cf8a6dcd8d6b not found"}
+{"Invalid certificate"}
 ```
-403, certificate CN invalid
+certificate issued by unknown authority
 ```json
-{"Error": "Invalid certificate"}
+{"Certificate signed by unknown authority"}
 ```
-403, certificate issued by unknown authority
+dia image file does not contain x509 certificate on pem format
 ```json
-{"Error": "Certificate signed by unknown authority"}
-```
-403, dia image file does not contain x509 certificate on pem format
-```json
-{"Error": "failed to parse CA certificate"}
+{"failed to parse certificate"}
 ```
 
 # Webhook install, helm chart:
@@ -71,13 +60,20 @@ docker build -t your-registry.local/diawh -f webhook.Dockerfile .
 ```
 
 Webhook chart parameters: see chart/values.yaml
+By default validating webhook enabled for namespaces with label: diawh=enabled
 
-# Gatekeeper ConstraintTemplate
-
-WIP...
 
 # Arihitecture
  <img src="architecture.svg">
 
 # TODO
 Sign with JWT tokens
+
+# For developers
+
+Local run and verify request example:
+
+```bash
+DIAWH_TLS_CERT=diawh.crt DIAWH_TLS_KEY=diawh.key go run ./cmd/dia-webhook/
+curl --data '{"Request": {"UID":"dummy-uid"}}' -k https://localhost:8080/verify
+```

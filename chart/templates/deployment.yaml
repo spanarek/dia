@@ -3,12 +3,10 @@ kind: Deployment
 metadata:
   name: dia-webhook
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: "diawh"
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -19,27 +17,33 @@ spec:
         imagePullPolicy: IfNotPresent
         name: dia-webhook
         env:
-          - name: DIAWH_PORT
-            value: '8080'
-          - name: DIAWH_CA_PATH
-            value: /etc/pki/CA/ca.crt
+          {{ .Values.env | toYaml |nindent 11 }}
         resources:
           requests:
             cpu: 100m
             memory: 128Mi
         volumeMounts:
-        - mountPath: /etc/pki/CA/ca.crt
+        - mountPath: /etc/pki/tls/certs/ca.pem
           subPath: ca.crt
-          name: cert-v
+          name: dia-attestor-ca
+        - mountPath: /etc/pki/tls/certs/diawh.crt
+          subPath: tls.crt
+          name: dia-tls-v
+        - mountPath: /etc/pki/tls/private/diawh.key
+          subPath: tls.key
+          name: dia-tls-v
       dnsPolicy: ClusterFirst
-      {{ if .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{ .Values.imagePullSecrets | toYaml }}
-      {{- end }}
       restartPolicy: Always
       terminationGracePeriodSeconds: 1
       serviceAccount: diawh
       volumes:
       - secret:
-          secretName: dia-ca
-        name: cert-v
+          secretName: dia-attestor-ca
+        name: dia-attestor-ca
+      - secret:
+      {{ if .Values.webhookTLS.useCertManager }}
+          secretName: dia-tls-cert
+      {{- else }}
+          secretName: {{ .Values.webhookTLS.secretName }}
+      {{- end }}
+        name: dia-tls-v
