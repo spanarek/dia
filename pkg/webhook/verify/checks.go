@@ -74,6 +74,9 @@ func checkCert(digestSliceValues string, imageDigest *string, crt []byte, CA []b
   }
 
   bca, _ := pem.Decode(CA)
+  if bca == nil {
+    return errors.New("DIAWH_ATTESTOR_CA_CERT does not contain any x509 certificate in PEM format")
+  }
   cacert, err := x509.ParseCertificate(bca.Bytes)
   if err != nil {
     log.Print("failed to parse CA certificate: " + err.Error())
