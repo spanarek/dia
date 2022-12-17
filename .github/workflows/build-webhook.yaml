@@ -19,7 +19,7 @@ env:
 
 jobs:
   build-and-push-image:
-    runs-on: debian-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
