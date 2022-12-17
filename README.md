@@ -74,6 +74,8 @@ Sign with JWT tokens
 Local run and verify request example:
 
 ```bash
-DIAWH_TLS_CERT=diawh.crt DIAWH_TLS_KEY=diawh.key go run ./cmd/dia-webhook/
+# Place your tls cert and key, attestor ca and go run
+DIAWH_TLS_CERT=.local/diawh.crt DIAWH_TLS_KEY=.local/diawh.key DIAWH_ATTESTOR_CA_CERT=.local/ca.pem go run ./cmd/dia-webhook/
+# Check request
 curl --data '{"Request": {"UID":"dummy-uid"}}' -k https://localhost:8080/verify
 ```
