@@ -1,5 +1,5 @@
 # Webhook image
-image: ghcr.io/spanarek/dia/dia-webhook:v1.0.1
+image: ghcr.io/spanarek/dia/dia-webhook@sha256:2a7a85cf33a77316e8a3616fcc1fcbde234d1945a1feb2d0268a677c2464c0ca
 imagePullPolicy: IfNotPresent
 
 # Exclude namespace list, don`t destroy your cluster:
