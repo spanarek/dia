@@ -1,5 +1,5 @@
 # Webhook image
-image:
+image: ghcr.io/spanarek/dia/dia-webhook:v1.0.0
 
 # Exclude namespace list, don`t destroy your cluster:
 skipNamespaces:
