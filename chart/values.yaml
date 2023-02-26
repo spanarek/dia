@@ -1,0 +1,8 @@
+# Define imagePullsecrets for pull webhook image
+# imagePullSecrets:
+#   - name: 'registry-local'
+image: ''
+# Namespace list for gatekeeper policy verification:
+verifyNamespaces: []
+# Ca certificate in base64:
+ca: ""
