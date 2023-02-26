@@ -47,8 +47,8 @@ func VerifySignatureLayer(digestSliceValues string, imageDigest *string, DIAWH_C
 
 func checkCert(digestSliceValues string, imageDigest *string, crt []byte, CA []byte) error {
   bcrt, _ := pem.Decode(crt)
-  if bcrt == nil {
-    return errors.New("dia-image does not contain any CERTIFICATE in PEM format")
+  if bcrt == nil || bcrt.Type != "CERTIFICATE" {
+    return errors.New("dia-image layer does not contain any CERTIFICATE in PEM format")
   }
   cert, err := x509.ParseCertificate(bcrt.Bytes)
   if err != nil {
@@ -74,8 +74,8 @@ func checkCert(digestSliceValues string, imageDigest *string, crt []byte, CA []b
   }
 
   bca, _ := pem.Decode(CA)
-  if bca == nil {
-    return errors.New("DIAWH_ATTESTOR_CA_CERT does not contain any x509 certificate in PEM format")
+  if bca == nil || bca.Type != "CERTIFICATE" {
+    return errors.New("DIAWH_ATTESTOR_CA_CERT does not contain any certificate in PEM format")
   }
   cacert, err := x509.ParseCertificate(bca.Bytes)
   if err != nil {
