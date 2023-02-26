@@ -54,14 +54,18 @@ dia image file does not contain x509 certificate on pem format
 ```
 
 # Webhook install, helm chart:
-Build an webhook image
+Build an webhook image manually when needed
 ```
 docker build -t your-registry.local/diawh -f webhook.Dockerfile .
 ```
 
+## Chart
 Webhook chart parameters: see chart/values.yaml
 By default validating webhook enabled for namespaces with label: diawh=enabled
 
+```bash
+helm upgrade --install -n dia diawh chart/
+```
 
 # Arihitecture
  <img src="architecture.svg">
