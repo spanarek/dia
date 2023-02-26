@@ -13,13 +13,18 @@ on:
   push:
     branches: ['release']
     tags: ['v*', 'latest']
+    paths:
+      - webhook.Dockerfile
+      - cmd/dia-webhook/**
+      - pkg/webhook/**
+      - go.*
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/dia-webhook
 
 jobs:
-  build-and-push-image:
+  build-and-push-webhook-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,7 +47,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
+      - name: Build and push webhook Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
