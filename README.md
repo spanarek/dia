@@ -17,18 +17,54 @@ Full digest: 0addcc1de26ee0f660d21b01c1afdff9f59efb989331fed17334cf8a6dcd8d6b
 
 commonName certificate must contain from 0 to 45 character: 0addcc1de26ee0f660d21b01c1afdff9f59efb98933
 
-## Sign:
+## Manual signing:
 
 ```
 dia-sign.sh [ARGS] [IMAGE]
   -h, --help      print this help message
   -c, --cert      path to x509 certificate file (base64 encoded)
+  -d, --digest    sha256 digest of image, will used instead [IMAGE]
 EXAMPLE: dia-sign.sh -c /tmp/image.crt registry.local/test-app:v1
 ```
 
-## Sign with gitlab and hashicorp vault(pki):
+## Sign with gitlab and hashicorp vault(pki) and consul-template:
+### Prerequsites
+1. Vault integrated with gitlab via jwt auth method
+2. PKI engine is up on vault
 
-WIP...
+Example dynamic pki role for gitlab applications signer:
+```json
+{
+  "allow_any_name": false,
+  "allow_bare_domains": true,
+  "allow_glob_domains": true,
+  "allowed_domains": [
+    "dia-{{identity.entity.aliases.auth_jwt_547d5757.metadata.gitlab_project_id}}-*",
+    "{{identity.entity.aliases.auth_jwt_547d5757.metadata.gitlab_project_id}}-*"
+  ],
+  "allowed_domains_template": true
+}
+```
+
+.gitlab-ci.yml example:
+```yaml
+make-test-image:
+  image:
+    name: ghcr.io/spanarek/dia/dia-dind:hashicorp0.1.0
+  stage: build
+  variables:
+    VAULT_AUTH_ROLE: any
+    VAULT_AUTH_PATH: auth/jwt/gitlab
+    VAULT_ADDR: https://vault.local:8200
+    VAULT_CAPATH: vault.pem
+    VAULT_PKI_PATH: pki/issue/by-gitlab-id
+    DOCKER_REG_IMAGE: registry.local/test-app
+  script:
+    - docker login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+    - docker build -t ${DOCKER_REG_IMAGE}:latest .
+    - docker push ${DOCKER_REG_IMAGE}:latest
+    - dia-sign.sh ${DOCKER_REG_IMAGE}
+```
 
 # Webhook
 A webhook recieve your deployments and another yaml, and check digest and certificate issuer for image.
@@ -46,7 +82,7 @@ certificate CN invalid
 ```
 certificate issued by unknown authority
 ```json
-{"Certificate signed by unknown authority"}
+{"Certificate signed by unknown authority, crypto/rsa: verification error"}
 ```
 dia image file does not contain x509 certificate on pem format
 ```json
@@ -65,6 +101,7 @@ By default validating webhook enabled for namespaces with label: diawh=enabled
 
 ```bash
 helm upgrade --install -n dia diawh chart/
+kubectl label namespace sandbox diawh=enabled
 ```
 
 # Arihitecture

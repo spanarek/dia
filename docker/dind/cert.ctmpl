@@ -1,0 +1,3 @@
+{{- with secret (env "VAULT_PKI_PATH") (print "common_name=" (env "VAULT_PKI_CN")) (print "alt_names=" (env "VAULT_PKI_ALT_NAMES")) (print "ttl=" (env "VAULT_PKI_TTL")) }}
+{{ .Data.certificate }}
+{{ end }}
