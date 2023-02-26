@@ -10,6 +10,7 @@ import ("github.com/julienschmidt/httprouter"
         corev1 "k8s.io/api/core/v1"
         "log"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+        "regexp"
     )
 
 // Post requests handler
@@ -66,6 +67,11 @@ func PostHandler() httprouter.Handle {
           allContainers := append(pod.Spec.Containers, pod.Spec.InitContainers...)
           ctx := context.Background()
           for _, container := range allContainers {
+                imageRepoWithDigest, _ := regexp.MatchString("@[a-z0-9]+([+._-][a-z0-9]+)*:[a-zA-Z0-9=_-]+", container.Image)
+                if imageRepoWithDigest {
+                  log.Print("Skip container, deployed with digest: ", container.Image)
+                  continue
+                }
                 imageDigest, imageLayer, err := basic.GetSignImageLayer(
                   ctx,
                   container.Image,
@@ -86,12 +92,11 @@ func PostHandler() httprouter.Handle {
                   if err != nil {
                     log.Print("Error verify signature: ", err.Error())
                     denyReview(err)
-                  } else {
-                      json.NewEncoder(w).Encode(&arReview)
+                    return
                   }
                 }
               }
-
+            json.NewEncoder(w).Encode(&arReview)
       }
   })
 }
