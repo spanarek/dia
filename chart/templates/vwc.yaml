@@ -1,0 +1,41 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: dia-vwc
+  annotations:
+{{- if .Values.webhookTLS.useCertManager }}
+    cert-manager.io/inject-ca-from: "{{ .Release.Namespace }}/diawh.{{ .Release.Namespace }}"
+{{- end }}
+webhooks:
+- name: pods.dia.vwc
+  admissionReviewVersions: ["v1beta1"]
+  clientConfig:
+    service:
+      namespace: {{ .Release.Namespace }}
+      name: diawh
+      path: /verify
+      port: 8080
+    caBundle: {{ .Values.webhookTLS.ca }}
+  rules:
+  - operations:
+    - CREATE
+    apiGroups:
+    - "*"
+    apiVersions:
+    - "*"
+    resources:
+    - pods
+  # failurePolicy: Ignore
+  namespaceSelector:
+    matchExpressions:
+    - key: name
+      operator: NotIn
+      values:
+       {{ .Values.skipNamespaces | toYaml |nindent 8 }}
+    - key: name
+      operator: NotIn
+      values:
+      - {{ .Release.Namespace }}
+    matchLabels:
+      diawh: enabled
+  sideEffects: NoneOnDryRun

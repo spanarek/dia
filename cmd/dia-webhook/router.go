@@ -39,8 +39,8 @@ func RouterInit(appConfig map[string]string) {
   case "https":
     log.Fatal(http.ListenAndServeTLS(
       ":"+appConfig["port"],
-      "/etc/ssl/certs/diawh.crt",
-      "/etc/ssl/private/diawh.key",
+      appConfig["tls_cert"],
+      appConfig["tls_key"],
       router))
   }
 }

@@ -1,2 +1,7 @@
 ca.pem
 **.bak
+**.crt
+**.key
+**.lock
+**.tgz
+.local/**

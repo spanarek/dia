@@ -1,8 +1,29 @@
-# Define imagePullsecrets for pull webhook image
-# imagePullSecrets:
-#   - name: 'registry-local'
-image: ''
-# Namespace list for gatekeeper policy verification:
-verifyNamespaces: []
-# Ca certificate in base64:
-ca: ""
+# Webhook image
+image:
+
+# Exclude namespace list, don`t destroy your cluster:
+skipNamespaces:
+  - kube-system
+  - cert-manager
+
+# Ca certificate for image verification in base64:
+attestor_ca:
+
+# Webhook api service tls config
+webhookTLS:
+  useCertManager: true
+  generateSelfSigned: true
+  installCertManager: false
+  # issuer: "<issuer-name>"
+  # secretName: "<tls cert and key secret, used without cert-manager>"
+  # ca: "<tls ca base64, needed for k8s controller requests, used without cert-manager>"
+
+env:
+  - name: DIAWH_PORT
+    value: '8080'
+  - name: DIGEST_SLICE
+    value: '0-40'
+
+cert-manager:
+  namespace: cert-manager
+  installCRDs: false
